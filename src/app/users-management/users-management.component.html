@@ -10,7 +10,7 @@
       @for (user of users();track user.id;let i = $index) {
           <li>
             {{ i }}: {{ user.name }}
-            <div style="padding-bottom: 5vh">
+            <div style="margin-bottom: 1vh">
               <img ngSrc="{{user.avatar}}"
                    width="100"
                    height="100"
@@ -18,6 +18,10 @@
                    [alt]="'user:' + user.name"
               >
             </div>
+            <button style="margin-bottom: 5vh"
+                    (click)="onEdit(user.id)">
+              Edit
+            </button>
           </li>
       } @empty {
         <li> There are no users.</li>

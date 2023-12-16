@@ -7,12 +7,17 @@ import {UserComponent} from "./user/user.component";
 export const USERS_MANAGEMENT: Routes = [
   {
     path: '',
-    component: UsersManagementComponent,
     canActivate: [() => inject(AuthService).isAdmin()],
     children: [
       {
+        path: '',
+        component: UsersManagementComponent,
+        pathMatch: 'full',
+      },
+      {
         path: 'user/:id',
         component: UserComponent,
+        pathMatch: 'full',
       },
     ],
   },

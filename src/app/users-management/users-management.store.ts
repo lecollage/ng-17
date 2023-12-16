@@ -1,5 +1,5 @@
 import {patchState, signalStore, signalStoreFeature, type, withComputed, withMethods, withState,} from '@ngrx/signals';
-import {EntityId, setAllEntities, withEntities} from "@ngrx/signals/entities";
+import {EntityId, setAllEntities, setEntity, withEntities} from "@ngrx/signals/entities";
 
 import {computed, inject, Signal} from "@angular/core";
 import {User} from "./users-management.interface";
@@ -40,6 +40,26 @@ export function withUsersFeature() {
       selectedUser: computed(() => entities().find(user => selectedId() === user.id))
     })),
     withMethods((store, usersService = inject(UsersService)) => ({
+      selectUser(selectedId: string): void {
+        patchState(store, {selectedId});
+      },
+      loadUser$: rxMethod<string>(
+        pipe(
+          tap(() => patchState(store, {loading: true})),
+          switchMap((id) =>
+            usersService.loadUser$(id).pipe(
+              tapResponse({
+                next: (user) => patchState(store, setEntity(user)),
+                error: (error: HttpErrorResponse) => {
+                  console.error(error);
+                  patchState(store, {error})
+                },
+                finalize: () => patchState(store, {loading: false}),
+              }),
+            ),
+          ),
+        )
+      ),
       loadAll$: rxMethod<void>(
         pipe(
           tap(() => patchState(store, {loading: true})),

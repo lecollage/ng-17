@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-user',
@@ -7,6 +8,13 @@ import { Component } from '@angular/core';
   templateUrl: './user.component.html',
   styleUrl: './user.component.scss'
 })
-export class UserComponent {
+export class UserComponent implements OnInit {
+  private readonly router = inject(Router);
 
+  constructor() {
+    console.log(`extras: `, this.router.getCurrentNavigation()?.extras.state)
+  }
+
+  ngOnInit() {
+  }
 }

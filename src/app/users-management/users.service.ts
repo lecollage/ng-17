@@ -16,4 +16,9 @@ export class UsersService {
     const url = `${this.appConfig.baseUrl}/users`;
     return this.http.get<User[]>(url);
   }
+
+  public loadUser$(id: string): Observable<User> {
+    const url = `${this.appConfig.baseUrl}/user/${id}`;
+    return this.http.get<User>(url);
+  }
 }
