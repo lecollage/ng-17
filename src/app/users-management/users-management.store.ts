@@ -8,14 +8,14 @@ import {UsersService} from "./users.service";
 import {rxMethod} from "@ngrx/signals/rxjs-interop";
 import {tapResponse} from "@ngrx/operators";
 import {EntityMap} from "@ngrx/signals/entities/src/models";
+import {HttpErrorResponse} from "@angular/common/http";
 
 export type Entity = { id: EntityId };
 
-type State = { users: User[]; loading: boolean; };
-
-const initialState: State = {
-  users: [],
-  loading: false,
+type State = {
+  selectedId: string;
+  loading: boolean;
+  error: HttpErrorResponse | null;
 };
 
 export function withUsersFeature() {
@@ -31,9 +31,10 @@ export function withUsersFeature() {
       }>(),
       methods: {}
     },
-    withState({
+    withState<State>({
       selectedId: '',
-      loading: false
+      loading: false,
+      error: null
     }),
     withComputed(({selectedId, entities}) => ({
       selectedUser: computed(() => entities().find(user => selectedId() === user.id))
@@ -46,7 +47,10 @@ export function withUsersFeature() {
             usersService.loadAll$().pipe(
               tapResponse({
                 next: (users) => patchState(store, setAllEntities(users)),
-                error: console.error,
+                error: (error: HttpErrorResponse) => {
+                  console.error(error);
+                  patchState(store, {error})
+                },
                 finalize: () => patchState(store, {loading: false}),
               }),
             ),

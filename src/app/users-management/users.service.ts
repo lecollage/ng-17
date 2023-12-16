@@ -1,6 +1,7 @@
 import {HttpClient} from '@angular/common/http';
 import {Inject, Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
+
 import {User} from "./users-management.interface";
 import {APP_CONFIG} from "../app.config";
 
