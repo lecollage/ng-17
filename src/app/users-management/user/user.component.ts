@@ -7,6 +7,7 @@ import {FormControl, FormGroup, ReactiveFormsModule, Validators} from "@angular/
 
 import {UsersStore} from "../users-management.store";
 import {User} from "../users-management.interface";
+import {UserActivityComponent} from "../../user-activity/user-activity.component";
 
 @Component({
   selector: 'app-user',
@@ -17,6 +18,7 @@ import {User} from "../users-management.interface";
     ReactiveFormsModule,
     JsonPipe,
     NgTemplateOutlet,
+    UserActivityComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

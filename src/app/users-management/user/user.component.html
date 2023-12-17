@@ -4,6 +4,16 @@
     <p>Loading...</p>
   } @else {
     <ng-container *ngTemplateOutlet="userForm"/>
+
+    @defer (on timer(10000ms)) {
+      <app-user-activity/>
+    } @placeholder (minimum 500ms) {
+      <p>User activity placeholder...</p>
+    } @loading (after 100ms; minimum 1s) {
+      <p>User activity loading...</p>
+    } @error {
+      <p>Failed to load user activity</p>
+    }
   }
 </section>
 
