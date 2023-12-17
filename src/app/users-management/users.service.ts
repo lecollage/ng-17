@@ -17,8 +17,12 @@ export class UsersService {
     return this.http.get<User[]>(url);
   }
 
-  public loadUser$(id: string): Observable<User> {
-    const url = `${this.appConfig.baseUrl}/user/${id}`;
+  public loadUser$(id: string | number): Observable<User> {
+    const url = `${this.appConfig.baseUrl}/users/${id}`;
     return this.http.get<User>(url);
+  }
+  public putUser$(user: User): Observable<User> {
+    const url = `${this.appConfig.baseUrl}/users/${user.id}`;
+    return this.http.put<User>(url, user);
   }
 }

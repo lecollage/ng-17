@@ -1,24 +1,32 @@
-import {patchState, signalStore, signalStoreFeature, type, withComputed, withMethods, withState,} from '@ngrx/signals';
-import {EntityId, setAllEntities, setEntity, withEntities} from "@ngrx/signals/entities";
-
-import {computed, inject, Signal} from "@angular/core";
-import {User} from "./users-management.interface";
-import {pipe, switchMap, tap} from "rxjs";
-import {UsersService} from "./users.service";
+import {HttpErrorResponse} from "@angular/common/http";
+import {computed, inject, Injectable, Signal} from "@angular/core";
+import {
+  patchState,
+  signalStore,
+  signalStoreFeature,
+  type,
+  withComputed,
+  withHooks,
+  withMethods,
+  withState,
+} from '@ngrx/signals';
+import {EntityId, setAllEntities, setEntity, updateEntity, withEntities} from "@ngrx/signals/entities";
 import {rxMethod} from "@ngrx/signals/rxjs-interop";
 import {tapResponse} from "@ngrx/operators";
 import {EntityMap} from "@ngrx/signals/entities/src/models";
-import {HttpErrorResponse} from "@angular/common/http";
+import {pipe, switchMap, tap} from "rxjs";
 
-export type Entity = { id: EntityId };
+import {UsersService} from "./users.service";
+import {User} from "./users-management.interface";
 
 type State = {
   selectedId: string;
   loading: boolean;
+  loaded: boolean;
   error: HttpErrorResponse | null;
 };
 
-export function withUsersFeature() {
+const withUsersFeature = () => {
   return signalStoreFeature
   (
     {
@@ -34,10 +42,12 @@ export function withUsersFeature() {
     withState<State>({
       selectedId: '',
       loading: false,
+      loaded: false,
       error: null
     }),
     withComputed(({selectedId, entities}) => ({
-      selectedUser: computed(() => entities().find(user => selectedId() === user.id))
+      selectedUser: computed(() => entities().find(user => selectedId() === user.id)),
+      allUsers: computed(() => entities())
     })),
     withMethods((store, usersService = inject(UsersService)) => ({
       selectUser(selectedId: string): void {
@@ -45,11 +55,18 @@ export function withUsersFeature() {
       },
       loadUser$: rxMethod<string>(
         pipe(
-          tap(() => patchState(store, {loading: true})),
+          tap(() => patchState(store, {loading: true, loaded: false})),
           switchMap((id) =>
             usersService.loadUser$(id).pipe(
               tapResponse({
-                next: (user) => patchState(store, setEntity(user)),
+                next: (user) => {
+                  console.log(`loadUser$ >> user: `, user);
+                  patchState(store,
+                    setEntity(user),
+                    {selectedId: user.id},
+                    {loaded: true}
+                  );
+                },
                 error: (error: HttpErrorResponse) => {
                   console.error(error);
                   patchState(store, {error})
@@ -66,7 +83,28 @@ export function withUsersFeature() {
           switchMap(() =>
             usersService.loadAll$().pipe(
               tapResponse({
-                next: (users) => patchState(store, setAllEntities(users)),
+                next: (users) => {
+                  patchState(store, setAllEntities(users), {loaded: true})
+                },
+                error: (error: HttpErrorResponse) => {
+                  console.error(error);
+                  patchState(store, {error})
+                },
+                finalize: () => patchState(store, {loading: false}),
+              }),
+            ),
+          ),
+        )
+      ),
+      putUser$: rxMethod<User>(
+        pipe(
+          tap(() => patchState(store, {loading: true})),
+          switchMap((user) =>
+            usersService.putUser$(user).pipe(
+              tapResponse({
+                next: (user) => {
+                  patchState(store, updateEntity({id: user.id, changes: user}))
+                },
                 error: (error: HttpErrorResponse) => {
                   console.error(error);
                   patchState(store, {error})
@@ -77,11 +115,18 @@ export function withUsersFeature() {
           ),
         )
       )
-    }))
+    })),
+    withHooks({
+      onInit: (usersStore) => {
+        console.log(`onInit >> `, usersStore)
+      },
+    })
   )
 }
 
-export const UsersStore = signalStore(
+@Injectable({providedIn: 'root'})
+export class UsersStore extends signalStore(
   withEntities<User>(),
   withUsersFeature()
-);
+) {
+}

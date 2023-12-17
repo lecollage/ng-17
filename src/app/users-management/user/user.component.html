@@ -1,1 +1,18 @@
-<p>user works!</p>
+<h1>User</h1>
+<section>
+  @if (isLoading() && !isLoaded()) {
+    <p>Loading...</p>
+  } @else {
+    <ng-container *ngTemplateOutlet="userForm"/>
+  }
+</section>
+
+<ng-template #userForm>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="form-field">
+      <label for="name">Name</label>
+      <input formControlName="name" type="text" id="name" placeholder="Enter name">
+    </div>
+    <button type="submit" style="margin: 2vh 0">Save</button>
+  </form>
+</ng-template>
